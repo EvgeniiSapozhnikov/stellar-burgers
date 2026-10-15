@@ -1,27 +1,56 @@
+import { useEffect } from 'react';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+
 import { AppHeader } from '@components';
-import { ConstructorPage } from '@pages';
+import {
+  ConstructorPage,
+  Feed,
+  ForgotPassword,
+  Login,
+  NotFound404,
+  Profile,
+  ProfileOrders,
+  Register,
+  ResetPassword,
+} from '@pages';
+import { IngredientDetails } from '../ingredient-details';
+import { Modal } from '../modal';
+import { OrderInfo } from '../order-info';
+import { ProtectedRoute } from '../protected-route';
 import { Preloader } from '@ui';
-import { Routes, Route } from 'react-router-dom';
+
+import { useDispatch, useSelector } from '../../services/store';
+import {
+  fetchIngredients,
+  ingredientsSelectors,
+} from '../../services/slices/ingredients-slice';
+import { initUser } from '../../services/slices/user-slice';
 
 import type { AppContentProps } from './type';
-import type { TIngredient } from '@utils-types';
+import type { Location } from 'react-router-dom';
 
 import '../../index.css';
 
 import styles from './app.module.css';
 
 const App = (): React.JSX.Element => {
-  const ingredients: TIngredient[] = [];
-  const isIngredientsLoading = false;
-  const ingredientsError = null;
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    void dispatch(initUser());
+  }, [dispatch]);
+
+  const { items: ingredients, isLoading, error } = useSelector(
+    ingredientsSelectors.selectIngredientsState
+  );
 
   return (
     <div className={styles.app}>
       <AppHeader />
       <AppContent
         ingredients={ingredients}
-        isLoading={isIngredientsLoading}
-        error={ingredientsError}
+        isLoading={isLoading}
+        error={error}
       />
     </div>
   );
@@ -29,13 +58,19 @@ const App = (): React.JSX.Element => {
 
 export default App;
 
-/* Маршруты показываются только когда ингредиенты загружены: без них не
-   отрисовать ни конструктор, ни состав заказа. */
 const AppContent = ({
   ingredients,
   isLoading,
   error,
 }: AppContentProps): React.JSX.Element => {
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    void dispatch(fetchIngredients());
+  }, [dispatch]);
+
   if (isLoading) {
     return <Preloader />;
   }
@@ -55,15 +90,112 @@ const AppContent = ({
     );
   }
 
-  return <RouteComponent />;
-};
+  /* Если страница открыли по фону (клик по карточке) — показываем модалку поверх
+     текущей страницы. При прямом открытии URL модальный контент отрисуется как
+     обычная страница в основном наборе роутов. */
+  const background: Location | null =
+    (location.state as { background?: Location } | null)?.background ?? null;
 
-const RouteComponent = (): React.JSX.Element => {
+  const closeModal = (): void => {
+    void navigate(-1);
+  };
+
   return (
     <>
-      <Routes>
+      <Routes location={background || location}>
         <Route path="/" element={<ConstructorPage />} />
+        <Route path="/feed" element={<Feed />} />
+        <Route path="/feed/:number" element={<OrderInfo />} />
+        <Route path="/ingredients/:id" element={<IngredientDetails />} />
+        <Route
+          path="/login"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Login />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Register />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ForgotPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ResetPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/orders"
+          element={
+            <ProtectedRoute>
+              <ProfileOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/orders/:number"
+          element={
+            <ProtectedRoute>
+              <OrderInfo />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<NotFound404 />} />
       </Routes>
+
+      {background && (
+        <Routes>
+          <Route
+            path="/feed/:number"
+            element={
+              <Modal title='' onClose={closeModal}>
+                <OrderInfo />
+              </Modal>
+            }
+          />
+          <Route
+            path="/ingredients/:id"
+            element={
+              <Modal title='Детали ингредиента' onClose={closeModal}>
+                <IngredientDetails />
+              </Modal>
+            }
+          />
+          <Route
+            path="/profile/orders/:number"
+            element={
+              <ProtectedRoute>
+                <Modal title='' onClose={closeModal}>
+                  <OrderInfo />
+                </Modal>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      )}
     </>
   );
 };
