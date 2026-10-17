@@ -1,6 +1,3 @@
-import { useEffect } from 'react';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-
 import { AppHeader } from '@components';
 import {
   ConstructorPage,
@@ -13,18 +10,20 @@ import {
   Register,
   ResetPassword,
 } from '@pages';
-import { IngredientDetails } from '../ingredient-details';
-import { Modal } from '../modal';
-import { OrderInfo } from '../order-info';
-import { ProtectedRoute } from '../protected-route';
 import { Preloader } from '@ui';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
-import { useDispatch, useSelector } from '../../services/store';
 import {
   fetchIngredients,
   ingredientsSelectors,
 } from '../../services/slices/ingredients-slice';
 import { initUser } from '../../services/slices/user-slice';
+import { useDispatch, useSelector } from '../../services/store';
+import { IngredientDetails } from '../ingredient-details';
+import { Modal } from '../modal';
+import { OrderInfo } from '../order-info';
+import { ProtectedRoute } from '../protected-route';
 
 import type { AppContentProps } from './type';
 import type { Location } from 'react-router-dom';
@@ -40,18 +39,16 @@ const App = (): React.JSX.Element => {
     void dispatch(initUser());
   }, [dispatch]);
 
-  const { items: ingredients, isLoading, error } = useSelector(
-    ingredientsSelectors.selectIngredientsState
-  );
+  const {
+    items: ingredients,
+    isLoading,
+    error,
+  } = useSelector(ingredientsSelectors.selectIngredientsState);
 
   return (
     <div className={styles.app}>
       <AppHeader />
-      <AppContent
-        ingredients={ingredients}
-        isLoading={isLoading}
-        error={error}
-      />
+      <AppContent ingredients={ingredients} isLoading={isLoading} error={error} />
     </div>
   );
 };
@@ -90,7 +87,7 @@ const AppContent = ({
     );
   }
 
-  /* Если страница открыли по фону (клик по карточке) — показываем модалку поверх
+  /* Если страницу открыли по фону (клик по карточке) — показываем модалку поверх
      текущей страницы. При прямом открытии URL модальный контент отрисуется как
      обычная страница в основном наборе роутов. */
   const background: Location | null =
@@ -102,11 +99,21 @@ const AppContent = ({
 
   return (
     <>
-      <Routes location={background || location}>
+      <Routes location={background ?? location}>
         <Route path="/" element={<ConstructorPage />} />
         <Route path="/feed" element={<Feed />} />
         <Route path="/feed/:number" element={<OrderInfo />} />
-        <Route path="/ingredients/:id" element={<IngredientDetails />} />
+        <Route
+          path="/ingredients/:id"
+          element={
+            <div className={styles.detailPageWrap}>
+              <h1 className={`${styles.detailHeader} text text_type_main-large`}>
+                Детали ингредиента
+              </h1>
+              <IngredientDetails />
+            </div>
+          }
+        />
         <Route
           path="/login"
           element={
@@ -171,7 +178,7 @@ const AppContent = ({
           <Route
             path="/feed/:number"
             element={
-              <Modal title='' onClose={closeModal}>
+              <Modal title="" onClose={closeModal}>
                 <OrderInfo />
               </Modal>
             }
@@ -179,7 +186,7 @@ const AppContent = ({
           <Route
             path="/ingredients/:id"
             element={
-              <Modal title='Детали ингредиента' onClose={closeModal}>
+              <Modal title="Детали ингредиента" onClose={closeModal}>
                 <IngredientDetails />
               </Modal>
             }
@@ -188,7 +195,7 @@ const AppContent = ({
             path="/profile/orders/:number"
             element={
               <ProtectedRoute>
-                <Modal title='' onClose={closeModal}>
+                <Modal title="" onClose={closeModal}>
                   <OrderInfo />
                 </Modal>
               </ProtectedRoute>

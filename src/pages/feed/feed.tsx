@@ -1,10 +1,9 @@
 import { Preloader } from '@ui';
 import { FeedUI } from '@ui-pages';
+import { useEffect } from 'react';
 
 import { feedSelectors, fetchFeeds } from '../../services/slices/feed-slice';
 import { useDispatch, useSelector } from '../../services/store';
-
-import { useEffect } from 'react';
 
 export const Feed = (): React.JSX.Element => {
   const dispatch = useDispatch();

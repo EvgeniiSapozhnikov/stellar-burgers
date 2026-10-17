@@ -1,5 +1,5 @@
 import { ProfileUI } from '@ui-pages';
-import { type SyntheticEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from 'react';
 
 import { updateUser, userSelectors } from '../../services/slices/user-slice';
 import { useDispatch, useSelector } from '../../services/store';
@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from '../../services/store';
 export const Profile = (): React.JSX.Element => {
   const dispatch = useDispatch();
   const user = useSelector(userSelectors.selectUser);
+  const updateUserError = useSelector(userSelectors.selectUpdateUserError) ?? '';
 
   const [formValue, setFormValue] = useState({
     name: user?.name ?? '',
@@ -14,53 +15,54 @@ export const Profile = (): React.JSX.Element => {
     password: '',
   });
 
-  useEffect(() => {
-    setFormValue((prevState) => ({
-      ...prevState,
+  const initialUser = useMemo(
+    () => ({
       name: user?.name ?? '',
       email: user?.email ?? '',
-    }));
-  }, [user]);
+      password: '',
+    }),
+    [user?.name, user?.email]
+  );
 
-  const isFormChanged =
-    formValue.name !== user?.name ||
-    formValue.email !== user?.email ||
-    !!formValue.password;
+  useEffect(() => {
+    setFormValue(initialUser);
+  }, [initialUser]);
 
-  const handleSubmit = (e: SyntheticEvent): void => {
+  const isFormChanged = useMemo(
+    () =>
+      formValue.name !== initialUser.name ||
+      formValue.email !== initialUser.email ||
+      formValue.password !== '',
+    [formValue, initialUser]
+  );
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    setFormValue({ ...formValue, [e.target.name]: e.target.value });
+  };
+
+  const handleCancel = (): void => {
+    setFormValue(initialUser);
+  };
+
+  const handleSubmit = (e: FormEvent): void => {
     e.preventDefault();
     void dispatch(
       updateUser({
         name: formValue.name,
         email: formValue.email,
-        ...(formValue.password ? { password: formValue.password } : {}),
+        ...(formValue.password !== '' ? { password: formValue.password } : {}),
       })
     );
-  };
-
-  const handleCancel = (e: SyntheticEvent): void => {
-    e.preventDefault();
-    setFormValue({
-      name: user?.name ?? '',
-      email: user?.email ?? '',
-      password: '',
-    });
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setFormValue((prevState) => ({
-      ...prevState,
-      [e.target.name]: e.target.value,
-    }));
   };
 
   return (
     <ProfileUI
       formValue={formValue}
       isFormChanged={isFormChanged}
-      handleCancel={handleCancel}
-      handleSubmit={handleSubmit}
+      updateUserError={updateUserError}
       handleInputChange={handleInputChange}
+      handleSubmit={handleSubmit}
+      handleCancel={handleCancel}
     />
   );
 };

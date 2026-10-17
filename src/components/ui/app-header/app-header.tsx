@@ -10,31 +10,56 @@ import type { TAppHeaderUIProps } from './type';
 
 import styles from './app-header.module.css';
 
-const getLinkClass = ({ isActive }: { isActive: boolean }): string =>
-  `${styles.link} ${isActive ? styles.link_active : ''}`;
+const renderNavContent = (
+  isActive: boolean,
+  Icon: (props: { type: 'primary' | 'secondary' }) => React.JSX.Element,
+  label: string
+): React.JSX.Element => (
+  <>
+    <Icon type={isActive ? 'secondary' : 'primary'} />
+    <p className="text text_type_main-default ml-2">{label}</p>
+  </>
+);
 
 export const AppHeaderUI = ({ userName }: TAppHeaderUIProps): React.JSX.Element => (
   <header className={styles.header}>
     <nav className={`${styles.menu} p-4`}>
       <div className={styles.menu_part_left}>
-        <NavLink to='/' className={getLinkClass}>
-          <BurgerIcon type={'primary'} />
-          <p className='text text_type_main-default ml-2 mr-10'>Конструктор</p>
+        <NavLink to="/">
+          {({ isActive }) => (
+            <div
+              className={
+                isActive
+                  ? `${styles.link} ${styles.link_active} mr-10`
+                  : `${styles.link} mr-10`
+              }
+            >
+              {renderNavContent(isActive, BurgerIcon, 'Конструктор')}
+            </div>
+          )}
         </NavLink>
-        <NavLink to='/feed' className={getLinkClass}>
-          <ListIcon type={'primary'} />
-          <p className='text text_type_main-default ml-2'>Лента заказов</p>
+        <NavLink to="/feed">
+          {({ isActive }) => (
+            <div
+              className={isActive ? `${styles.link} ${styles.link_active}` : styles.link}
+            >
+              {renderNavContent(isActive, ListIcon, 'Лента заказов')}
+            </div>
+          )}
         </NavLink>
       </div>
       <div className={styles.logo}>
-        <Logo className='' />
+        <Logo className="" />
       </div>
       <div className={styles.link_position_last}>
-        <NavLink to='/profile' className={getLinkClass}>
-          <ProfileIcon type={'primary'} />
-          <p className='text text_type_main-default ml-2'>
-            {userName ?? 'Личный кабинет'}
-          </p>
+        <NavLink to="/profile">
+          {({ isActive }) => (
+            <div
+              className={isActive ? `${styles.link} ${styles.link_active}` : styles.link}
+            >
+              {renderNavContent(isActive, ProfileIcon, userName ?? 'Личный кабинет')}
+            </div>
+          )}
         </NavLink>
       </div>
     </nav>

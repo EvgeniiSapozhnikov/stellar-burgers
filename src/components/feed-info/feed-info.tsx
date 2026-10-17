@@ -12,8 +12,9 @@ const getOrders = (orders: TOrder[], status: string): number[] =>
     .slice(0, 20);
 
 export const FeedInfo = (): React.JSX.Element => {
-  const { orders, total, totalToday, isLoading, error } =
-    useSelector(feedSelectors.selectFeedState);
+  const { orders, total, totalToday, isLoading, error } = useSelector(
+    feedSelectors.selectFeedState
+  );
 
   const readyOrders = getOrders(orders, 'done');
 

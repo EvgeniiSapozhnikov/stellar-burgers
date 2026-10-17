@@ -1,19 +1,16 @@
 import { ProfileMenuUI } from '@ui';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import { logout } from '../../services/slices/user-slice';
 import { useDispatch } from '../../services/store';
 
 export const ProfileMenu = (): React.JSX.Element => {
+  const location = useLocation();
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
 
   const handleLogout = (): void => {
-    void dispatch(logout()).then(() => {
-      void navigate('/login');
-    });
+    void dispatch(logout());
   };
 
-  return <ProfileMenuUI pathname={pathname} handleLogout={handleLogout} />;
+  return <ProfileMenuUI pathname={location.pathname} handleLogout={handleLogout} />;
 };

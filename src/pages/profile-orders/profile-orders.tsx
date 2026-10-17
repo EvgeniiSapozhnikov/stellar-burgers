@@ -14,4 +14,3 @@ export const ProfileOrders = (): React.JSX.Element => {
 
   return <ProfileOrdersUI orders={orders} />;
 };
-

@@ -1,52 +1,99 @@
 import { createSlice, nanoid } from '@reduxjs/toolkit';
 
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { TConstructorState, TConstructorIngredient, TIngredient } from '@utils-types';
+import type {
+  TConstructorIngredient,
+  TConstructorState,
+  TIngredient,
+} from '@utils-types';
 
-import type { RootState } from '../store';
+export const CONSTRUCTOR_PERSIST_KEY = 'burgerConstructor';
 
-const initialState: TConstructorState = {
-  bun: null,
-  ingredients: [],
+const loadInitialState = (): TConstructorState => {
+  try {
+    const saved = localStorage.getItem(CONSTRUCTOR_PERSIST_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved) as TConstructorState;
+      return {
+        bun: parsed.bun ?? null,
+        ingredients: parsed.ingredients ?? [],
+      };
+    }
+  } catch {
+    // некорректный JSON в localStorage — начинаем с пустого конструктора
+  }
+  return { bun: null, ingredients: [] };
 };
 
-const constructorSlice = createSlice({
+const initialState: TConstructorState = loadInitialState();
+
+const saveToStorage = (state: TConstructorState): void => {
+  try {
+    localStorage.setItem(
+      CONSTRUCTOR_PERSIST_KEY,
+      JSON.stringify({ bun: state.bun, ingredients: state.ingredients })
+    );
+  } catch {
+    // localStorage недоступен — работаем без персистенса
+  }
+};
+
+export const burgerConstructorSlice = createSlice({
   name: 'burgerConstructor',
   initialState,
   reducers: {
-    addIngredient(state, action: PayloadAction<TIngredient>) {
-      const ingredient: TConstructorIngredient = {
-        ...action.payload,
-        id: nanoid(),
-      };
-      if (action.payload.type === 'bun') {
-        state.bun = ingredient;
-        return;
+    addIngredient: {
+      reducer: (state, action: PayloadAction<TConstructorIngredient>) => {
+        if (action.payload.type === 'bun') {
+          state.bun = action.payload;
+        } else {
+          state.ingredients.push(action.payload);
+        }
+        saveToStorage(state);
+      },
+      prepare: (ingredient: TIngredient): { payload: TConstructorIngredient } => ({
+        payload: { ...ingredient, id: nanoid() },
+      }),
+    },
+
+    removeIngredient: (state, action: PayloadAction<string>) => {
+      state.ingredients = state.ingredients.filter((item) => item.id !== action.payload);
+      saveToStorage(state);
+    },
+
+    moveIngredientUp: (state, action: PayloadAction<number>) => {
+      const index = action.payload;
+      if (index > 0 && index < state.ingredients.length) {
+        const temp = state.ingredients[index - 1];
+        state.ingredients[index - 1] = state.ingredients[index];
+        state.ingredients[index] = temp;
+        saveToStorage(state);
       }
-      state.ingredients.push(ingredient);
     },
-    removeIngredient(state, action: PayloadAction<string>) {
-      state.ingredients = state.ingredients.filter(
-        (item) => item.id !== action.payload
-      );
-    },
-    moveIngredientUp(state, action: PayloadAction<number>) {
+
+    moveIngredientDown: (state, action: PayloadAction<number>) => {
       const index = action.payload;
-      if (index <= 0 || index >= state.ingredients.length) return;
-      [state.ingredients[index - 1], state.ingredients[index]] = [
-        state.ingredients[index],
-        state.ingredients[index - 1],
-      ];
+      if (index >= 0 && index < state.ingredients.length - 1) {
+        const temp = state.ingredients[index + 1];
+        state.ingredients[index + 1] = state.ingredients[index];
+        state.ingredients[index] = temp;
+        saveToStorage(state);
+      }
     },
-    moveIngredientDown(state, action: PayloadAction<number>) {
-      const index = action.payload;
-      if (index < 0 || index >= state.ingredients.length - 1) return;
-      [state.ingredients[index + 1], state.ingredients[index]] = [
-        state.ingredients[index],
-        state.ingredients[index + 1],
-      ];
+
+    resetConstructor: (state) => {
+      state.bun = null;
+      state.ingredients = [];
+      saveToStorage(state);
     },
-    clearConstructor: () => initialState,
+  },
+  selectors: {
+    selectConstructorState: (state): TConstructorState => ({
+      bun: state.bun,
+      ingredients: state.ingredients,
+    }),
+    selectBun: (state) => state.bun,
+    selectIngredients: (state) => state.ingredients,
   },
 });
 
@@ -55,12 +102,9 @@ export const {
   removeIngredient,
   moveIngredientUp,
   moveIngredientDown,
-  clearConstructor,
-} = constructorSlice.actions;
+  resetConstructor,
+} = burgerConstructorSlice.actions;
 
-export const constructorSelectors = {
-  selectConstructorState: (state: RootState): TConstructorState =>
-    state.burgerConstructor,
-};
+export const constructorSelectors = burgerConstructorSlice.selectors;
 
-export default constructorSlice.reducer;
+export default burgerConstructorSlice.reducer;

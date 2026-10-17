@@ -1,9 +1,8 @@
+import { orderBurgerApi } from '@api';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { orderBurgerApi } from '@api';
-import type { TOrder } from '@utils-types';
-
 import type { RootState } from '../store';
+import type { TOrder } from '@utils-types';
 
 type TOrderState = {
   orderRequest: boolean;
@@ -17,16 +16,8 @@ const initialState: TOrderState = {
   error: null,
 };
 
-export const orderBurger = createAsyncThunk(
-  'order/orderBurger',
-  async (data: string[], { rejectWithValue }) => {
-    try {
-      const res = await orderBurgerApi(data);
-      return res.order;
-    } catch (err) {
-      return rejectWithValue((err as Error).message);
-    }
-  }
+export const orderBurger = createAsyncThunk('order/orderBurger', (data: string[]) =>
+  orderBurgerApi(data).then((res) => res.order)
 );
 
 const orderSlice = createSlice({
@@ -48,7 +39,7 @@ const orderSlice = createSlice({
       })
       .addCase(orderBurger.rejected, (state, action) => {
         state.orderRequest = false;
-        state.error = (action.payload as string) ?? action.error.message ?? null;
+        state.error = action.error.message ?? null;
       });
   },
 });
