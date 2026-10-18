@@ -1,5 +1,11 @@
 import { ProfileUI } from '@ui-pages';
-import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from 'react';
+import {
+  type ChangeEvent,
+  type SyntheticEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { updateUser, userSelectors } from '../../services/slices/user-slice';
 import { useDispatch, useSelector } from '../../services/store';
@@ -44,15 +50,17 @@ export const Profile = (): React.JSX.Element => {
     setFormValue(initialUser);
   };
 
-  const handleSubmit = (e: FormEvent): void => {
+  const handleSubmit = (e: SyntheticEvent<Element, Event>): void => {
     e.preventDefault();
-    void dispatch(
-      updateUser({
-        name: formValue.name,
-        email: formValue.email,
-        ...(formValue.password !== '' ? { password: formValue.password } : {}),
-      })
-    );
+    void dispatch(updateUser(formValue))
+      .unwrap()
+      .then((updatedUser) => {
+        setFormValue({
+          name: updatedUser.name,
+          email: updatedUser.email,
+          password: '',
+        });
+      });
   };
 
   return (

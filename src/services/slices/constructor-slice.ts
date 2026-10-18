@@ -7,35 +7,9 @@ import type {
   TIngredient,
 } from '@utils-types';
 
-export const CONSTRUCTOR_PERSIST_KEY = 'burgerConstructor';
-
-const loadInitialState = (): TConstructorState => {
-  try {
-    const saved = localStorage.getItem(CONSTRUCTOR_PERSIST_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved) as TConstructorState;
-      return {
-        bun: parsed.bun ?? null,
-        ingredients: parsed.ingredients ?? [],
-      };
-    }
-  } catch {
-    // некорректный JSON в localStorage — начинаем с пустого конструктора
-  }
-  return { bun: null, ingredients: [] };
-};
-
-const initialState: TConstructorState = loadInitialState();
-
-const saveToStorage = (state: TConstructorState): void => {
-  try {
-    localStorage.setItem(
-      CONSTRUCTOR_PERSIST_KEY,
-      JSON.stringify({ bun: state.bun, ingredients: state.ingredients })
-    );
-  } catch {
-    // localStorage недоступен — работаем без персистенса
-  }
+const initialState: TConstructorState = {
+  bun: null,
+  ingredients: [],
 };
 
 export const burgerConstructorSlice = createSlice({
@@ -49,7 +23,6 @@ export const burgerConstructorSlice = createSlice({
         } else {
           state.ingredients.push(action.payload);
         }
-        saveToStorage(state);
       },
       prepare: (ingredient: TIngredient): { payload: TConstructorIngredient } => ({
         payload: { ...ingredient, id: nanoid() },
@@ -58,7 +31,6 @@ export const burgerConstructorSlice = createSlice({
 
     removeIngredient: (state, action: PayloadAction<string>) => {
       state.ingredients = state.ingredients.filter((item) => item.id !== action.payload);
-      saveToStorage(state);
     },
 
     moveIngredientUp: (state, action: PayloadAction<number>) => {
@@ -67,7 +39,6 @@ export const burgerConstructorSlice = createSlice({
         const temp = state.ingredients[index - 1];
         state.ingredients[index - 1] = state.ingredients[index];
         state.ingredients[index] = temp;
-        saveToStorage(state);
       }
     },
 
@@ -77,14 +48,12 @@ export const burgerConstructorSlice = createSlice({
         const temp = state.ingredients[index + 1];
         state.ingredients[index + 1] = state.ingredients[index];
         state.ingredients[index] = temp;
-        saveToStorage(state);
       }
     },
 
     resetConstructor: (state) => {
       state.bun = null;
       state.ingredients = [];
-      saveToStorage(state);
     },
   },
   selectors: {

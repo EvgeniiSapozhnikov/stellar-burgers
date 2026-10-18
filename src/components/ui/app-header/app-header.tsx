@@ -10,41 +10,39 @@ import type { TAppHeaderUIProps } from './type';
 
 import styles from './app-header.module.css';
 
-const renderNavContent = (
+const renderIcon = (
   isActive: boolean,
-  Icon: (props: { type: 'primary' | 'secondary' }) => React.JSX.Element,
-  label: string
-): React.JSX.Element => (
-  <>
-    <Icon type={isActive ? 'secondary' : 'primary'} />
-    <p className="text text_type_main-default ml-2">{label}</p>
-  </>
-);
+  Icon: (props: { type: 'primary' | 'secondary' }) => React.JSX.Element
+): React.JSX.Element => <Icon type={isActive ? 'primary' : 'secondary'} />;
 
 export const AppHeaderUI = ({ userName }: TAppHeaderUIProps): React.JSX.Element => (
   <header className={styles.header}>
     <nav className={`${styles.menu} p-4`}>
       <div className={styles.menu_part_left}>
-        <NavLink to="/">
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            `${styles.link} mr-10 ${isActive ? styles.link_active : ''}`
+          }
+        >
           {({ isActive }) => (
-            <div
-              className={
-                isActive
-                  ? `${styles.link} ${styles.link_active} mr-10`
-                  : `${styles.link} mr-10`
-              }
-            >
-              {renderNavContent(isActive, BurgerIcon, 'Конструктор')}
-            </div>
+            <>
+              {renderIcon(isActive, BurgerIcon)}
+              <p className="text text_type_main-default ml-2">Конструктор</p>
+            </>
           )}
         </NavLink>
-        <NavLink to="/feed">
+        <NavLink
+          to="/feed"
+          className={({ isActive }) =>
+            `${styles.link} ${isActive ? styles.link_active : ''}`
+          }
+        >
           {({ isActive }) => (
-            <div
-              className={isActive ? `${styles.link} ${styles.link_active}` : styles.link}
-            >
-              {renderNavContent(isActive, ListIcon, 'Лента заказов')}
-            </div>
+            <>
+              {renderIcon(isActive, ListIcon)}
+              <p className="text text_type_main-default ml-2">Лента заказов</p>
+            </>
           )}
         </NavLink>
       </div>
@@ -52,13 +50,19 @@ export const AppHeaderUI = ({ userName }: TAppHeaderUIProps): React.JSX.Element 
         <Logo className="" />
       </div>
       <div className={styles.link_position_last}>
-        <NavLink to="/profile">
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            `${styles.link} ${isActive ? styles.link_active : ''}`
+          }
+        >
           {({ isActive }) => (
-            <div
-              className={isActive ? `${styles.link} ${styles.link_active}` : styles.link}
-            >
-              {renderNavContent(isActive, ProfileIcon, userName ?? 'Личный кабинет')}
-            </div>
+            <>
+              {renderIcon(isActive, ProfileIcon)}
+              <p className="text text_type_main-default ml-2">
+                {userName ?? 'Личный кабинет'}
+              </p>
+            </>
           )}
         </NavLink>
       </div>

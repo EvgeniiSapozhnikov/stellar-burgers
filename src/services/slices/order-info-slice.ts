@@ -1,63 +1,56 @@
+import { getOrderByNumberApi } from '@api';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { getOrderByNumberApi } from '../../utils/burger-api';
-
+import type { RootState } from '../store';
 import type { TOrder } from '@utils-types';
 
-export const getOrderByNumber = createAsyncThunk(
-  'orderInfo/getOrderByNumber',
-  async (number: number) => {
-    const data = await getOrderByNumberApi(number);
-
-    if (!data.success || !data.orders.length) {
-      throw new Error(`Заказ №${number} не найден`);
-    }
-
-    return data.orders[0];
-  }
-);
-
 type TOrderInfoState = {
-  order: TOrder | null;
-  request: boolean;
+  orderData: TOrder | null;
+  isOrderLoading: boolean;
   error: string | null;
 };
 
 const initialState: TOrderInfoState = {
-  order: null,
-  request: false,
+  orderData: null,
+  isOrderLoading: false,
   error: null,
 };
 
-export const orderInfoSlice = createSlice({
+export const fetchOrderByNumber = createAsyncThunk(
+  'orderInfo/fetchOrderByNumber',
+  (number: number) => getOrderByNumberApi(number).then((res) => res.orders[0])
+);
+
+const orderInfoSlice = createSlice({
   name: 'orderInfo',
   initialState,
   reducers: {
-    clearOrderInfo: (state) => {
-      state.order = null;
-      state.request = false;
-      state.error = null;
-    },
+    clearOrderInfo: () => initialState,
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getOrderByNumber.pending, (state) => {
-        state.request = true;
+      .addCase(fetchOrderByNumber.pending, (state) => {
+        state.isOrderLoading = true;
         state.error = null;
       })
-      .addCase(getOrderByNumber.fulfilled, (state, action) => {
-        state.order = action.payload;
-        state.request = false;
+      .addCase(fetchOrderByNumber.rejected, (state, action) => {
+        state.isOrderLoading = false;
+        state.error = action.error.message ?? null;
       })
-      .addCase(getOrderByNumber.rejected, (state, action) => {
-        state.request = false;
-        state.error = action.error.message ?? 'Не удалось загрузить заказ';
+      .addCase(fetchOrderByNumber.fulfilled, (state, action) => {
+        state.isOrderLoading = false;
+        state.orderData = action.payload;
       });
-  },
-  selectors: {
-    selectOrderInfo: (state) => state,
   },
 });
 
 export const { clearOrderInfo } = orderInfoSlice.actions;
-export const orderInfoSelectors = orderInfoSlice.selectors;
+
+export const orderInfoSelectors = {
+  selectOrderInfoState: (state: RootState): TOrderInfoState => state.orderInfo,
+  selectOrderInfoData: (state: RootState): TOrder | null => state.orderInfo.orderData,
+  selectIsOrderInfoLoading: (state: RootState): boolean =>
+    state.orderInfo.isOrderLoading,
+};
+
+export default orderInfoSlice.reducer;

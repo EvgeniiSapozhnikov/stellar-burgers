@@ -8,7 +8,6 @@ import { OrderCardUI } from '../ui/order-card';
 import type { OrderCardProps } from './type';
 import type { TIngredient } from '@utils-types';
 import type { FC } from 'react';
-import type { Location } from 'react-router-dom';
 
 const maxIngredients = 6;
 
@@ -54,11 +53,7 @@ export const OrderCard: FC<OrderCardProps> = memo(({ order }) => {
     <OrderCardUI
       orderInfo={orderInfo}
       maxIngredients={maxIngredients}
-      locationState={{
-        background: location.state
-          ? (location.state as { background: Location }).background
-          : ({} as Location),
-      }}
+      locationState={{ background: location }}
     />
   );
 });

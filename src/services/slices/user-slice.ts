@@ -68,11 +68,8 @@ export const logout = createAsyncThunk('user/logout', async (_, { dispatch }) =>
   try {
     await logoutApi();
   } finally {
-    /* Локальный выход выполняем всегда, даже если сервер не ответил */
     localStorage.removeItem('refreshToken');
     deleteCookie('accessToken');
-    /* Конструктор — собственность браузера, а не аккаунта:
-         другому пользователю чужой бургер видеться не должен */
     dispatch(resetConstructor());
   }
 });

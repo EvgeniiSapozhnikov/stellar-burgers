@@ -87,9 +87,6 @@ const AppContent = ({
     );
   }
 
-  /* Если страницу открыли по фону (клик по карточке) — показываем модалку поверх
-     текущей страницы. При прямом открытии URL модальный контент отрисуется как
-     обычная страница в основном наборе роутов. */
   const background: Location | null =
     (location.state as { background?: Location } | null)?.background ?? null;
 

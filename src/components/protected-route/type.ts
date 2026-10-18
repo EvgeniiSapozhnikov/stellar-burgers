@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
+import type { ReactElement } from 'react';
 
 export type ProtectedRouteProps = {
   onlyUnAuth?: boolean;
-  children: ReactNode;
+  children: ReactElement;
 };

@@ -13,8 +13,6 @@ export const IngredientsCategory = ({
   ingredients,
   ref,
 }: TIngredientsCategoryProps): React.JSX.Element => {
-  /* Состояние конструктора из стора: счётчики должны показывать,
-     сколько чего уже лежит в бургере */
   const burgerConstructor: TConstructorState = useSelector(
     constructorSelectors.selectConstructorState
   );
