@@ -1,5 +1,6 @@
 import { createSlice, nanoid } from '@reduxjs/toolkit';
 
+import type { RootState } from '../store';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type {
   TConstructorIngredient,
@@ -74,6 +75,11 @@ export const {
   resetConstructor,
 } = burgerConstructorSlice.actions;
 
-export const constructorSelectors = burgerConstructorSlice.selectors;
+export const constructorSelectors = {
+  selectBun: (state: RootState): TConstructorIngredient | null =>
+    state.burgerConstructor.bun,
+  selectIngredients: (state: RootState): TConstructorIngredient[] =>
+    state.burgerConstructor.ingredients,
+};
 
 export default burgerConstructorSlice.reducer;

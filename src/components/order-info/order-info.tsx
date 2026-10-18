@@ -1,5 +1,5 @@
 import { OrderInfoUI, Preloader } from '@ui';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { ingredientsSelectors } from '../../services/slices/ingredients-slice';
@@ -18,21 +18,33 @@ export const OrderInfo = (): React.JSX.Element => {
 
   const ingredients = useSelector(ingredientsSelectors.selectIngredients);
   const fetchedOrder = useSelector(orderInfoSelectors.selectOrderInfoData);
-  const isOrderLoading = useSelector(orderInfoSelectors.selectIsOrderInfoLoading);
 
-  const orders = useSelector((state: RootState) => [
-    ...state.feed.orders,
-    ...state.profileOrders.orders,
-  ]);
+  const feedOrders = useSelector((state: RootState) => state.feed.orders);
+  const profileOrders = useSelector((state: RootState) => state.profileOrders.orders);
 
-  const localOrder = orders.find((order) => order.number === Number(number));
-  const orderData = localOrder ?? fetchedOrder;
+  const orders = useMemo(
+    () => [...feedOrders, ...profileOrders],
+    [feedOrders, profileOrders]
+  );
+
+  const numberFromUrl = Number(number);
+
+  const localOrder = orders.find((order) => order.number === numberFromUrl);
+
+  const fetchedOrderMatches =
+    fetchedOrder && fetchedOrder.number === numberFromUrl ? fetchedOrder : null;
+
+  const orderData = localOrder ?? fetchedOrderMatches;
+
+  const requestedNumberRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!localOrder && !isOrderLoading) {
-      void dispatch(fetchOrderByNumber(Number(number)));
+    if (localOrder || requestedNumberRef.current === numberFromUrl) {
+      return;
     }
-  }, [localOrder, isOrderLoading, number, dispatch]);
+    requestedNumberRef.current = numberFromUrl;
+    void dispatch(fetchOrderByNumber(numberFromUrl));
+  }, [localOrder, numberFromUrl, dispatch]);
 
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;

@@ -21,7 +21,8 @@ export const BurgerConstructor = (): React.JSX.Element => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { bun, ingredients } = useSelector(constructorSelectors.selectConstructorState);
+  const bun = useSelector(constructorSelectors.selectBun);
+  const constructorIngredients = useSelector(constructorSelectors.selectIngredients);
   const { orderRequest, orderModalData } = useSelector(orderSelectors.selectOrderState);
   const user = useSelector(userSelectors.selectUser);
   const isAuthChecked = useSelector(userSelectors.selectIsAuthChecked);
@@ -35,7 +36,7 @@ export const BurgerConstructor = (): React.JSX.Element => {
   const constructorItems: {
     bun: TConstructorIngredient | null;
     ingredients: TConstructorIngredient[];
-  } = { bun, ingredients };
+  } = { bun, ingredients: constructorIngredients };
 
   const onOrderClick = (): void => {
     if (isAuthChecked && !user) {
@@ -45,13 +46,13 @@ export const BurgerConstructor = (): React.JSX.Element => {
     if (orderRequest) {
       return;
     }
-    if (!bun || ingredients.length === 0) {
+    if (!bun || constructorIngredients.length === 0) {
       return;
     }
     const ingredientIds: string[] = [
       bun._id,
       bun._id,
-      ...ingredients.map((item) => item._id),
+      ...constructorIngredients.map((item) => item._id),
     ];
     void dispatch(orderBurger(ingredientIds));
   };
@@ -63,8 +64,8 @@ export const BurgerConstructor = (): React.JSX.Element => {
   const price: number = useMemo(
     () =>
       (bun ? bun.price * 2 : 0) +
-      ingredients.reduce((acc: number, item) => acc + item.price, 0),
-    [bun, ingredients]
+      constructorIngredients.reduce((acc: number, item) => acc + item.price, 0),
+    [bun, constructorIngredients]
   );
 
   return (

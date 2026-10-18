@@ -99,7 +99,14 @@ const AppContent = ({
       <Routes location={background ?? location}>
         <Route path="/" element={<ConstructorPage />} />
         <Route path="/feed" element={<Feed />} />
-        <Route path="/feed/:number" element={<OrderInfo />} />
+        <Route
+          path="/feed/:number"
+          element={
+            <ProtectedRoute>
+              <OrderInfo />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/ingredients/:id"
           element={
@@ -175,9 +182,11 @@ const AppContent = ({
           <Route
             path="/feed/:number"
             element={
-              <Modal title="" onClose={closeModal}>
-                <OrderInfo />
-              </Modal>
+              <ProtectedRoute>
+                <Modal title="" onClose={closeModal}>
+                  <OrderInfo />
+                </Modal>
+              </ProtectedRoute>
             }
           />
           <Route
