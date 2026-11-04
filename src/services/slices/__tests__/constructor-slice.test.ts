@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import reducer, {
   addIngredient,
+  initialState,
   moveIngredientDown,
   moveIngredientUp,
   removeIngredient,
@@ -33,34 +34,28 @@ const bun = makeIngredient('bun-1', 'Флюоресцентная булка R2-
 const first = makeIngredient('main-1', 'Говяжий метеорит (отбивная)', 'main');
 const second = makeIngredient('main-2', 'Соус Spicy-X', 'sauce');
 
-const emptyState = (): ReturnType<typeof reducer> =>
-  reducer(undefined, { type: 'UNKNOWN_ACTION' });
-
 describe('Редьюсер конструктора бургера', () => {
   it('неизвестный экшен и undefined-состояние возвращают начальное состояние', () => {
-    const initial = emptyState();
-
-    expect(initial.bun).toBeNull();
-    expect(initial.ingredients).toEqual([]);
-    expect(reducer(initial, { type: 'UNKNOWN_ACTION' })).toEqual(initial);
+    expect(reducer(undefined, { type: 'UNKNOWN_ACTION' })).toEqual(initialState);
+    expect(reducer(initialState, { type: 'UNKNOWN_ACTION' })).toEqual(initialState);
   });
 
   it('addIngredient сохраняет булку в bun, не добавляя её в ingredients', () => {
-    const state = reducer(emptyState(), addIngredient(bun));
+    const state = reducer(initialState, addIngredient(bun));
 
     expect(state.bun).toEqual({ ...bun, id: expect.any(String) });
     expect(state.ingredients).toHaveLength(0);
   });
 
   it('addIngredient добавляет начинку в ingredients', () => {
-    const state = reducer(emptyState(), addIngredient(first));
+    const state = reducer(initialState, addIngredient(first));
 
     expect(state.bun).toBeNull();
     expect(state.ingredients).toEqual([{ ...first, id: expect.any(String) }]);
   });
 
   it('addIngredient сохраняет несколько начинок в порядке добавления', () => {
-    let state = emptyState();
+    let state = initialState;
     state = reducer(state, addIngredient(first));
     state = reducer(state, addIngredient(second));
 
@@ -68,14 +63,14 @@ describe('Редьюсер конструктора бургера', () => {
   });
 
   it('addIngredient перезаписывает id на сгенерированный nanoid', () => {
-    const state = reducer(emptyState(), addIngredient(first));
+    const state = reducer(initialState, addIngredient(first));
 
     expect(state.ingredients[0].id).not.toBe(first.id);
     expect(state.ingredients[0].id).toEqual(expect.any(String));
   });
 
   it('removeIngredient удаляет начинку по id', () => {
-    let state = emptyState();
+    let state = initialState;
     state = reducer(state, addIngredient(first));
     state = reducer(state, addIngredient(second));
 
@@ -87,7 +82,7 @@ describe('Редьюсер конструктора бургера', () => {
   });
 
   it('moveIngredientUp поднимает начинку выше', () => {
-    let state = emptyState();
+    let state = initialState;
     state = reducer(state, addIngredient(first));
     state = reducer(state, addIngredient(second));
     state = reducer(state, moveIngredientUp(1));
@@ -96,7 +91,7 @@ describe('Редьюсер конструктора бургера', () => {
   });
 
   it('moveIngredientDown опускает начинку ниже', () => {
-    let state = emptyState();
+    let state = initialState;
     state = reducer(state, addIngredient(first));
     state = reducer(state, addIngredient(second));
     state = reducer(state, moveIngredientDown(0));
@@ -105,7 +100,7 @@ describe('Редьюсер конструктора бургера', () => {
   });
 
   it('moveIngredientUp на первом элементе не меняет порядок', () => {
-    let state = emptyState();
+    let state = initialState;
     state = reducer(state, addIngredient(first));
     state = reducer(state, addIngredient(second));
     state = reducer(state, moveIngredientUp(0));
@@ -114,12 +109,11 @@ describe('Редьюсер конструктора бургера', () => {
   });
 
   it('resetConstructor очищает конструктор полностью', () => {
-    let state = emptyState();
+    let state = initialState;
     state = reducer(state, addIngredient(bun));
     state = reducer(state, addIngredient(first));
     state = reducer(state, resetConstructor());
 
-    expect(state.bun).toBeNull();
-    expect(state.ingredients).toEqual([]);
+    expect(state).toEqual(initialState);
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import reducer, { fetchIngredients } from '../ingredients-slice';
+import reducer, { fetchIngredients, initialState } from '../ingredients-slice';
 
 import type { TIngredient } from '@utils-types';
 
@@ -22,16 +22,14 @@ describe('Редьюсер слайса ингредиентов', () => {
   it('неизвестный экшен и undefined-состояние возвращают начальное состояние', () => {
     const initial = reducer(undefined, { type: 'UNKNOWN_ACTION' });
 
-    expect(initial.items).toEqual([]);
-    expect(initial.isLoading).toBe(false);
-    expect(initial.error).toBeNull();
+    expect(initial).toEqual(initialState);
     expect(reducer(initial, { type: 'UNKNOWN_ACTION' })).toEqual(initial);
   });
 
   describe('fetchIngredients', () => {
     it('pending включает isLoading и сбрасывает ошибку', () => {
       const state = reducer(
-        { items: [], isLoading: false, error: { message: 'старая ошибка' } },
+        { ...initialState, error: { message: 'старая ошибка' } },
         { type: fetchIngredients.pending.type },
       );
 
@@ -41,7 +39,7 @@ describe('Редьюсер слайса ингредиентов', () => {
 
     it('rejected выключает isLoading и сохраняет ошибку', () => {
       const state = reducer(
-        { items: [], isLoading: true, error: null },
+        { ...initialState, isLoading: true },
         {
           type: fetchIngredients.rejected.type,
           error: { message: 'Ошибка сети' },
@@ -54,7 +52,7 @@ describe('Редьюсер слайса ингредиентов', () => {
 
     it('fulfilled кладёт массив ингредиентов в items и выключает isLoading', () => {
       const state = reducer(
-        { items: [], isLoading: true, error: null },
+        { ...initialState, isLoading: true },
         {
           type: fetchIngredients.fulfilled.type,
           payload: [ingredient],

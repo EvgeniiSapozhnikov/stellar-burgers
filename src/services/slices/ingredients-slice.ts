@@ -5,13 +5,13 @@ import type { RootState } from '../store';
 import type { SerializedError } from '@reduxjs/toolkit';
 import type { TIngredient } from '@utils-types';
 
-type TIngredientsState = {
+export type TIngredientsState = {
   items: TIngredient[];
   isLoading: boolean;
   error: SerializedError | null;
 };
 
-const initialState: TIngredientsState = {
+export const initialState: TIngredientsState = {
   items: [],
   isLoading: false,
   error: null,

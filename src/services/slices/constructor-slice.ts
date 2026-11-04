@@ -8,7 +8,7 @@ import type {
   TIngredient,
 } from '@utils-types';
 
-const initialState: TConstructorState = {
+export const initialState: TConstructorState = {
   bun: null,
   ingredients: [],
 };
